@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .email-header {
+            text-align: center;
+            background-color: #059568;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .email-header h1 {
+            margin: 0;
+        }
+
+        .email-content {
+            background-color: #fff;
+            padding: 20px;
+        }
+
+        .homework-item {
+            background: rgba(10, 100, 100, 10%);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+
+        .homework-title {
+            font-weight: bold;
+        }
+
+        .homework-status {
+            color: #ff0000;
+        }
+
+        .course {
+            padding: 10px;
+            background: rgba(0, 50, 150, 10%);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+    </style>
+    <title>作业提醒通知</title>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-header">
+        <h1>作业提醒</h1>
+    </div>
+    <div class="email-content">
+
+        {% for course in courses %}
+        <div class="course">
+            <p class="homework-title">{{ course.name }}</p>
+            {% for task in course.tasks %}
+            <div class="homework-item">
+                <p><b>{{ task.name }}</b></p>
+                <p class="homework-status">作业状态: <b>{{ task.status }} ❌</b></p>
+                {% if task.time != '' %}
+                <p>作业时间: <b>{{ task.time }}</b></p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+        </div>
+        {% endfor %}
+
+
+        <div align="center" style="padding-top: 10px">
+            <a href="{{ remove_mail_url }}" style="color: rgb(128,128,128)">取消订阅</a>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

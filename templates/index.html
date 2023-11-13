@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>超星作业提醒订阅</title>
+    <link href="https://cdn.marshmellond.cool/tailwindcss%402.2.19_dist_tailwind.min.css" rel="stylesheet">
+    <script type="text/javascript">
+
+        let is_ok;
+
+        function subject() {
+
+
+            if (is_ok) {
+                const username = document.getElementById("account").value;
+                const password = document.getElementById("password").value;
+                const email = document.getElementById("email").value;
+                const hour = document.getElementById("hour").value;
+                const minute = document.getElementById("minute").value;
+                const time_step = document.getElementById("time_step").value;
+                if (username === '' || password === '' || email === '' || hour === '' || minute === '' || time_step === '') {
+                    const modal = document.getElementById("error-modal");
+                    const modalContent = document.getElementById("error-modal-content");
+                    const closeButton = document.getElementById("error-modal-close");
+
+                    modalContent.innerHTML = "请填写完整信息!";
+                    modal.classList.remove("hidden");
+                    closeButton.addEventListener("click", function () {
+                        modal.classList.add("hidden");
+                    });
+                    return;
+                }
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/submit", true);
+                xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            const response = JSON.parse(xhr.responseText);
+                            console.log(response)
+                            console.log(response.status)
+                            console.log(response.message)
+                            if (response.status) {
+                                console.log("提交");
+                                window.location.href = "/success";
+                            } else {
+                                console.log(response.message);
+                                // 跳转到失败页面
+                                const modal = document.getElementById("error-modal");
+                                const modalContent = document.getElementById("error-modal-content");
+                                const closeButton = document.getElementById("error-modal-close");
+
+                                modalContent.innerHTML = response.message;
+                                modal.classList.remove("hidden");
+                                closeButton.addEventListener("click", function () {
+                                    modal.classList.add("hidden");
+                                });
+                            }
+                        }
+                    }
+                };
+
+                const data = {
+                    username: username,
+                    password: password,
+                    email: email,
+                    hour: hour,
+                    minute: minute,
+                    time_step: time_step,
+                };
+
+                xhr.send(JSON.stringify(data));
+            } else {
+                const modal = document.getElementById("error-modal");
+                const modalContent = document.getElementById("error-modal-content");
+                const closeButton = document.getElementById("error-modal-close");
+
+                modalContent.innerHTML = "请先测试登录";
+                modal.classList.remove("hidden");
+                closeButton.addEventListener("click", function () {
+                    modal.classList.add("hidden");
+                });
+            }
+        }
+
+        {#初始化 Cookie#}
+
+        function initCookie() {
+            let cookie = document.cookie;
+            let url;
+            if (cookie === "") {
+                url = "/api/init_cookie";
+                let xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.send();
+            }
+        }
+
+        initCookie()
+
+        function test_login() {
+            const username = document.getElementById("account").value;
+            const password = document.getElementById("password").value;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/test_login", true);
+            xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+
+                        if (response.status) {
+                            console.log("登录成功");
+                            set_ok();
+                        } else {
+                            console.log("账号或密码错误,请重新登陆!");
+                            set_error();
+                        }
+                    }
+                }
+            };
+
+            const data = {
+                username: username,
+                password: password,
+            };
+
+            xhr.send(JSON.stringify(data));
+        }
+
+        is_ok = false;
+
+        function set_ok() {
+
+            const testLoginButton = document.getElementById("test_login_button");
+            const subjectButton = document.getElementById("subject_button");
+            const usernameInput = document.getElementById("account");
+            const passwordInput = document.getElementById("password");
+
+            // 锁定用户名和密码字段
+            usernameInput.disabled = true;
+            passwordInput.disabled = true;
+
+            // 更改背景颜色为灰色
+            usernameInput.style.backgroundColor = "rgba(20,20,200,20%)";
+            passwordInput.style.backgroundColor = "rgba(20,20,200,20%)";
+
+            // 更改按钮颜色
+            subjectButton.style.backgroundColor = "green";
+            testLoginButton.style.display = "none";
+            is_ok = true;
+        }
+
+        function set_error() {
+            const testLoginButton = document.getElementById("test_login_button");
+            const subjectButton = document.getElementById("subject_button");
+            const modal = document.getElementById("error-modal");
+            const modalContent = document.getElementById("error-modal-content");
+            const closeButton = document.getElementById("error-modal-close");
+
+            testLoginButton.style.backgroundColor = "green";
+            subjectButton.style.backgroundColor = "gray";
+            modalContent.innerHTML = "账号或密码错误,请重新登陆!";
+            modal.classList.remove("hidden");
+            closeButton.addEventListener("click", function () {
+                modal.classList.add("hidden");
+            });
+            is_ok = false;
+        }
+
+        // 添加点击事件处理程序来关闭弹窗
+        document.addEventListener("DOMContentLoaded", function () {
+            // JavaScript 代码在这里执行
+            const confirmButton = document.getElementById("error-modal-confirm");
+            const modal = document.getElementById("error-modal");
+
+            confirmButton.addEventListener("click", function () {
+                modal.classList.add("hidden");
+            });
+        });
+
+    </script>
+</head>
+<body>
+<!-- 弹窗 -->
+<div id="error-modal" class="fixed inset-0 flex items-center justify-center hidden z-50">
+    <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+    <div class="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+        <div class="modal-content py-4 text-left px-6">
+            <div class="flex justify-between items-center pb-3">
+                <p class="text-2xl font-bold">失败</p>
+                <div id="error-modal-close" class="modal-close cursor-pointer z-50">
+                    <svg class="fill-current text-black" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                         viewBox="0 0 18 18">
+                        <path
+                                d="M5.293 5.293a1 1 0 011.414 0L9 7.586l2.293-2.293a1 1 0 111.414 1.414L10.414 9l2.293 2.293a1 1 0 01-1.414 1.414L9 10.414l-2.293 2.293a1 1 0 01-1.414-1.414L7.586 9 5.293 6.707a1 1 0 010-1.414z"
+                                fill-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+            <div id="error-modal-content"></div>
+            <!-- 添加确定按钮 -->
+            <div class="mt-4 text-center">
+                <button id="error-modal-confirm" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                    确定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="isolate bg-white px-6 py-10 sm:py-15 lg:px-8">
+    <div class="absolute inset-x-0 top-[-10rem] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[-20rem]"
+         aria-hidden="true">
+        <div class="relative left-1/2 -z-10 aspect-[1155/678] w-[36.125rem] max-w-none -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-40rem)] sm:w-[72.1875rem]"
+             style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+    </div>
+    <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">学习通<b
+                style="font-size: 50px">作业</b>订阅</h2>
+        <p class="mt-2 text-lg leading-8 text-gray-600">自动每天发送邮件📧，提示你所有未做完的作业！</p>
+    </div>
+    <form onsubmit="return false;" class="mx-auto mt-16 max-w-xl sm:mt-10">
+        <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div>
+                <label for="account" class="block text-sm font-semibold leading-6 text-gray-900">超星用户名</label>
+                <div class="mt-2.5">
+                    <input type="text" name="account" id="account" autocomplete="account"
+                           class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-semibold leading-6 text-gray-900">超星密码</label>
+                <div class="mt-2.5">
+                    <input type="password" name="password" id="password" autocomplete="password"
+                           class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <label for="email" class="block text-sm font-semibold leading-6 text-gray-900">接收通知邮箱 </label>
+                <div class="mt-2.5">
+                    <input type="email" name="email" id="email" autocomplete="email"
+                           class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                </div>
+            </div>
+
+        </div>
+        <label for="last-name" class="block text-sm font-semibold leading-6 text-gray-900">通知时间</label>
+        <div class="flex items-center space-x-2">
+            <div class="mt-2.5 block w-full rounded-md border-0 text-center py-2  shadow-sm ring-1 ring-inset ring-gray-300">
+                <label for="hour" class="text-sm font-semibold">小时</label>
+                <select id="hour" name="hour" class="px-2 py-1 border rounded-md">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+
+                <label for="minute" class="text-sm font-semibold">分钟</label>
+                <select id="minute" name="minute" class="px-2 py-1 border rounded-md">
+                    <option value="0">0</option>
+                    <option value="30">30</option>
+                </select>
+
+                <label for="time_step" class="text-sm font-semibold">时段</label>
+                <select id="time_step" name="minute" class="px-2 py-1 border rounded-md">
+                    <option value="am">上午</option>
+                    <option value="pm">下午</option>
+                </select>
+            </div>
+        </div>
+        <div class="mt-10">
+            <button id="test_login_button"
+                    class="block w-full rounded-md bg-green-400 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    onclick="test_login()">
+                测试登录
+            </button>
+        </div>
+        <div class="mt-10">
+            <button id="subject_button"
+                    class="block w-full rounded-md bg-green-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    onclick="subject()">
+                提交
+            </button>
+        </div>
+    </form>
+</div>
+    <footer class="mt-auto bg-gray-200">
+        <p class="text-center text-gray-600 py-4">开发者
+            <a href="https://d5v.cc" class="text-green-500 hover:text-green-800"> Deadmau5v</a> 反馈邮箱:
+            deadmau5v@qq.com
+        </p>
+    </footer>
+</body>
+</html>
